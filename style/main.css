@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Bitter:wght@400;700&display=swap');
+body{
+  font-family: Bitter;
+}
+
+html, body {
+  overflow-x: hidden;
+}
+:root{
+  --dark:#483d43;
+  --brownish:#60575c;
+  --darkbrown:#373233;
+  --light:#EEEAE7;
+  --superlight:#f4efec;
+
+  --lightbrown:#a09994;
+  --lightish:#c9c2bd;
+  --bluish:#879497;
+  --darkbluish:#00040A;
+}
+
+@plugin "daisyui/theme" {
+  name: "mytheme";
+  default: true;
+  prefersdark: false;
+  color-scheme: light;
+
+  --dark:#483d43;
+  --light:#EEEAE7;
+  --bluish:#879497;
+  --darkbluish:#00040A;
+}
+.navbar {
+  left: 0;
+  right: 0;
+}
+:root{
+  background-color: var(--light);
+}
+.filterDrawer {
+  position: fixed;
+  top: 200px;  
+  left: 0;     
+  width: 270px; 
+  background-color: #f0f0f0; 
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2), -4px -4px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000; 
+  transition: left 0.3s ease; 
+  
+}
+
+.bookListShifted {
+  margin-left: 300px; 
+}
+
+#bookList {
+  transition: margin-left 0.3s ease; 
+  display: flex;
+  flex-wrap: wrap;
+}
+#bookList1 {
+  transition: margin-left 0.3s ease; 
+  display: flex;
+  flex-wrap: wrap;
+}
+#filterDrawer {
+  display: none; 
+}
+.kartica {
+  flex: 1 0 21%; 
+  margin-bottom: 20px;
+}
+
+
+.swiper-container {
+  width: 100%;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.swiper-wrapper {
+  display: flex;
+  width: auto;
+}
+
+.swiper-slide {
+  width: 300px; 
+  flex-shrink: 0;
+  height: auto;
+}
