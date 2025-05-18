@@ -71,23 +71,50 @@ async function odabirUrla(bookId, bookTitle, bookAuthors) {
     loading.style.display = "block";
 
     const search = `${bookTitle} ${bookAuthors}`;
-
-    let url = `https://www.googleapis.com/books/v1/volumes?q=${bookId}&${encodeURIComponent(search)}`;
+    const encoded = encodeURIComponent(search);
+    let url = `https://www.googleapis.com/books/v1/volumes?q=${bookId}&${encoded}`;
 
     try {
         const response = await fetch(url);
         const data = await response.json();
         const books = data.items;
-
-        if ( books.totalItems > 0) {
-
+        console.log(books)
+        if (books) {
+            if (books && books.length > 0) {
+                for (let i = 0; i < books.length; i++) {
+                    console.log(books[i].volumeInfo.title)
+                    console.log(bookTitle)
+                    if (books[i].volumeInfo.title == bookTitle) {
+                        bookTitle = books[i].volumeInfo.title || "Nepoznata knjiga";
+                    }
+                }
+            }
             fetchGoogleBooks(bookId, bookTitle, bookAuthors, url);
         } else {
-            url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(search)}`;
+            url = `https://www.googleapis.com/books/v1/volumes?q=${encoded}`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                const books = data.items;
+                if (books && books.length > 0) {
+                    // console.log(books.length)
+                    for (let i = 0; i < books.length; i++) {
+
+                        if (books[i].volumeInfo.title == bookTitle) {
+                            bookTitle = books[i].volumeInfo.title || "Nepoznata knjiga";
+                        }
+                    }
+
+                }
             fetchGoogleBooks(bookId, bookTitle, bookAuthors, url);
+
+            }
+            catch(error){
+                console.error("Error " +error);
+            }
         }
     } catch (error) {
-        console.error("Error kod Google api-a:"+ error);
+        console.error("Error kod Google api-a:" + error);
     }
 }
 
@@ -97,14 +124,16 @@ async function fetchGoogleBooks(bookId, bookTitle, bookAuthors, url) {
         const response = await fetch(url);
         const data = await response.json();
         const books = data.items;
-        const clickedBook = books.find(book => book.id == bookId);
+        console.log(books)
+        const clickedBook = books.find(book => book.volumeInfo.title === bookTitle);
+        console.log(clickedBook)
         if (clickedBook) {
             knjigaId = clickedBook;
             popupKnjiga(clickedBook, bookAuthors);
             localStorage.setItem("google", "true");
-        } 
+        }
     } catch (error) {
-        console.error("Error kod Google api-a:"+ error);
+        console.error("Error kod Google api-a:" + error);
     } finally {
         loading.style.display = "none";
     }
@@ -177,7 +206,7 @@ function wishlistBaza(book) {
                 .catch((error) => {
                     console.error("Error kod wishlist:", error);
                 });
-        } 
+        }
     });
     removeFromCitam(book)
 }
@@ -200,7 +229,7 @@ function citamBaza(book) {
                 .catch((error) => {
                     console.error("Error kod citam", error);
                 });
-        } 
+        }
     });
     removeFromWishlist(book)
 }
@@ -217,8 +246,8 @@ async function removeFromWishlist(book) {
                 const snapshot = await get(bookRef);
                 if (snapshot.exists()) {
                     await remove(bookRef);
-                    updateIkoneBtn(book.id); 
-                } 
+                    updateIkoneBtn(book.id);
+                }
             } catch (error) {
                 console.error("Greška pri micanju knjige iz wishliste:", error);
             }
@@ -240,7 +269,7 @@ async function removeFromCitam(book) {
             updateIkoneBtn(book.id);
         }
     } catch (error) {
-        console.error("Greška pri micanju knjige iz Čitam:"+ error);
+        console.error("Greška pri micanju knjige iz Čitam:" + error);
     }
 }
 
@@ -273,7 +302,7 @@ export async function updateIkoneBtn(bookId) {
             }
         });
     } catch (error) {
-        console.error("Error kod updatanja svgs:"+ error);
+        console.error("Error kod updatanja svgs:" + error);
     }
 }
 
@@ -297,19 +326,19 @@ async function handleBookBtn(btn, isSaveBtn, book) {
         }
         await updateIkoneBtn(book.id);
     } catch (error) {
-        console.error("Error kod book button:"+ error);
+        console.error("Error kod book button:" + error);
     }
 }
 
 async function BookuListi(bookId, listType) {
     const user = auth.currentUser;
-    
+
     const snap = await get(ref(db, `Korisnik/${user.uid}/${listType}/${bookId}`));
     return snap.exists();
 }
 
 function bookListeners(book) {
-    
+
     document.querySelectorAll(".save").forEach(btn => {
         btn.addEventListener("click", () => handleBookBtn(btn, true, book));
     });
@@ -320,13 +349,13 @@ function bookListeners(book) {
     updateIkoneBtn(book.id);
 }
 
-async function loadListe(){
-    firebaseLista.innerHTML=""
+async function loadListe() {
+    firebaseLista.innerHTML = ""
     const user = auth.currentUser;
     const userId = user.uid;
     // console.log(user)
     const userRef = ref(db, `Korisnik/${userId}`);
-        
+
     const snapshot = await get(userRef);
     if (snapshot.exists()) {
         const userData = snapshot.val();
@@ -335,8 +364,8 @@ async function loadListe(){
         Object.keys(userData).forEach(listName => {
             console.log(listName)
             if (!neubrajaj.includes(listName.toLowerCase())) {
-                 const isBookInList = knjigaId && knjigaId.id in userData[listName];
-                
+                const isBookInList = knjigaId && knjigaId.id in userData[listName];
+
                 const listElement = document.createElement("div");
                 listElement.className = "flex flex-row justify-between p-5 bg-[var(--light)] items-center";
                 listElement.innerHTML = `
@@ -364,7 +393,7 @@ async function loadListe(){
             } else {
                 await removeBookFromList(listName);
             }
-            await loadListe(); 
+            await loadListe();
         });
     });
 }
@@ -379,7 +408,7 @@ async function addBookToList(listName) {
         };
         await update(listRef, bookInfo);
     } catch (error) {
-        console.error("Greška pri dodavanju knjige:"+ error);
+        console.error("Greška pri dodavanju knjige:" + error);
     }
 }
 
@@ -396,7 +425,7 @@ async function stvoriListu() {
     let listaIme = document.getElementById("listaIme").value;
     let warningPoruka = document.querySelector(".warningList");
     warningPoruka.innerHTML = "";
-    
+
     if (!listaIme) {
         warningPoruka.innerHTML = "Molim vas unesite ime liste";
     }
@@ -408,16 +437,16 @@ async function stvoriListu() {
     try {
         const userRef = ref(db, `Korisnik/${auth.currentUser.uid}`);
         const snapshot = await get(userRef);
-        
-        let vecPostoji =  Object.keys(snapshot.val()).some(name => name.toLowerCase() == listaIme.toLowerCase());
+
+        let vecPostoji = Object.keys(snapshot.val()).some(name => name.toLowerCase() == listaIme.toLowerCase());
         if (snapshot.exists() && vecPostoji) {
             warningPoruka.innerHTML = "Lista s tim imenom već postoji.";
         }
         await addBookToList(listaIme);
-        
+
         warningPoruka.innerHTML = "Nova lista kreirana i knjiga dodana!";
         await loadListe();
-        
+
     } catch (error) {
         warningPoruka.innerHTML = "Došlo je do greške: " + error;
     }
